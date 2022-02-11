@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+    branches: [ feature_github_tests ]
+  pull_request:
+    branches: [ feature_github_tests ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9.2]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: install dependencies
+      run: |
+        sudo apt install python3 python3-bcrypt python3-dateutil python3-psycopg2 python3-fuzzywuzzy python3-flask python3-flask-babel python3-flask-login python3-flaskext.wtf python3-markdown python3-numpy python3-pandas python3-jinja2 python3-flask-cors python3-flask-restful p7zip-full python3-wand python3-rdflib python3-dicttoxml python3-rdflib-jsonld python3-flasgger
+    - name: unittest
+      run: |
+        export PYTHONPATH=/usr/lib/python3/dist-packages/:$PYTHONPATH
+        echo "PYTHONPATH=$PYTHONPATH"
+        python3 -m unittest openatlas tests/test_actor.py
