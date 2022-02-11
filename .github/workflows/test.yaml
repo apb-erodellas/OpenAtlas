@@ -30,7 +30,7 @@ jobs:
           python3-flask-cors python3-flask-restful p7zip-full python3-wand \
           python3-rdflib python3-dicttoxml python3-rdflib-jsonld \
           python3-flasgger apache2 libapache2-mod-wsgi-py3 postgresql \
-          postgresql-13-postgis-3 postgresql-13-postgis-3-scripts gettext \
+          postgresql-12-postgis-3 postgresql-12-postgis-3-scripts gettext \
           npm python3-pip python3-coverage python3-nose
     - name: unittest
       run: |
