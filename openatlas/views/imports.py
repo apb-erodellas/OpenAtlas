@@ -1,6 +1,7 @@
 import collections
+from pathlib import Path
 from typing import Optional, Union
-
+import json
 import numpy
 import pandas as pd
 from flask import flash, g, render_template, request, url_for
@@ -41,6 +42,45 @@ class ProjectForm(FlaskForm):
             self.name.errors.append(_('error name exists'))
             valid = False
         return valid
+
+
+@app.route('/indigo')
+@required_group('contributor')
+def indigo() -> str:
+    output = 'script started<br><br>'
+    with open(Path(app.root_path) / '../install/indigo.json', 'r') as f:
+        for data in json.load(f):
+            if '@id' not in data or not data['@id'] \
+                    .startswith('https://vocabs.acdh.oeaw.ac.at/indigo/'):
+                continue
+            output += 'Label: '
+            if 'http://www.w3.org/2004/02/skos/core#prefLabel' in data:
+                for item in data['http://www.w3.org/2004/02/skos/core#prefLabel']:
+                    if '@language' in item and item['@language'] == 'en':
+                        output += item['@value']
+                        break
+            else:
+                output += 'N/A'
+            output += '<br>Vocabs id: '
+            if '@id' in data:
+                output += data['@id'].replace('https://vocabs.acdh.oeaw.ac.at/indigo/', '')
+            else:
+                output += 'N/A'
+            output += '<br>---<br>'
+            for key, value in data.items():
+                if key in [
+                        '@id',
+                        '@type',
+                        'http://www.w3.org/2004/02/skos/core#topConceptOf',
+                        'http://www.w3.org/2004/02/skos/core#inScheme',
+                        'http://www.w3.org/2004/02/skos/core#prefLabel']:
+                    continue
+                output += f'{key}: {value}<br>'
+            output += '<br><br>'
+    output += '<br>script ended'
+    return render_template(
+        'tabs.html',
+        tabs={'info': Tab('info', content=output)})
 
 
 @app.route('/import/index')
