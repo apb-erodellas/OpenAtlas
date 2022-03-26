@@ -7,50 +7,74 @@ from openatlas import app
 def vocabs_import() -> str:
     types = {}
     missing = ''
+    vocabs = 'https://vocabs.acdh.oeaw.ac.at/indigo/'
+    skos = 'http://www.w3.org/2004/02/skos/core'
+    wikidata = 'https://www.wikidata.org/wiki/'
+    getty = 'http://vocab.getty.edu/page/aat/'
     with open(Path(app.root_path) / '../install/indigo.json', 'r') as f:
         for data in json.load(f):
             if '@id' not in data \
-                    or not data['@id'] != 'https://vocabs.acdh.oeaw.ac.at/indigo/Thesaurus' \
-                    or not data['@id'].startswith('https://vocabs.acdh.oeaw.ac.at/indigo/'):
+                    or not data['@id'] != f'{vocabs}Thesaurus' \
+                    or not data['@id'].startswith(vocabs):
                 continue
-            id_ = data['@id'].replace('https://vocabs.acdh.oeaw.ac.at/indigo/', '')
+            id_ = data['@id'].replace(vocabs, '')
             label = 'N/A'
-            if 'http://www.w3.org/2004/02/skos/core#prefLabel' in data:
-                for item in data['http://www.w3.org/2004/02/skos/core#prefLabel']:
+            if f'{skos}#prefLabel' in data:
+                for item in data[f'{skos}#prefLabel']:
                     if '@language' in item and item['@language'] == 'en':
                         label = item['@value']
                         break
-            types[id_] = {'vocabs_id': id_, 'label': label, 'subs': []}
+            types[id_] = {
+                'vocabs_id': id_,
+                'label': label,
+                'subs': [],
+                'references': {'wikidata': [], 'getty': []}}
 
-            if 'http://www.w3.org/2004/02/skos/core#member' in data:
-                subs = data['http://www.w3.org/2004/02/skos/core#member']
-                for sub in subs:
-                    types[id_]['subs'].append(sub['@id'].replace('https://vocabs.acdh.oeaw.ac.at/indigo/', ''))
+            if f'{skos}#member' in data:
+                for sub in data[f'{skos}#member']:
+                    types[id_]['subs'].append(sub['@id'].replace(vocabs, ''))
+            for match in ['exact', 'close']:
+                if f'{skos}#{match}Match' in data:
+                    items = data[f'{skos}#{match}Match']
+                    for reference in items:
+                        if reference['@id'].startswith(wikidata):
+                            types[id_]['references']['wikidata'].append({
+                                'id': reference['@id'].replace(wikidata, ''),
+                                'match': match})
+                        elif reference['@id'].startswith(getty):
+                            types[id_]['references']['getty'].append({
+                                'id': reference['@id'].replace(getty, ''),
+                                'match': match})
+                        else:
+                            missing += f'{reference}<br>'
 
             for key, value in data.items():
                 if key in [
-                        'http://www.w3.org/2004/02/skos/core#exactMatch',
-                        'http://www.w3.org/2004/02/skos/core#closeMatch',
                         '@id',
                         '@type',
                         'http://purl.org/dc/terms/source',
-                        'http://www.w3.org/2004/02/skos/core#altLabel',
-                        'http://www.w3.org/2004/02/skos/core#example',
-                        'http://www.w3.org/2004/02/skos/core#related',
-                        'http://www.w3.org/2004/02/skos/core#topConceptOf',
-                        'http://www.w3.org/2004/02/skos/core#inScheme',
-                        'http://www.w3.org/2004/02/skos/core#prefLabel',
-                        'http://www.w3.org/2004/02/skos/core#member',
-                        'http://www.w3.org/2004/02/skos/core#broadMatch',
-                        'http://www.w3.org/2004/02/skos/core#relatedMatch',
-                        'http://www.w3.org/2004/02/skos/core#broader',
-                        'http://www.w3.org/2004/02/skos/core#narrower']:
+                        f'{skos}#altLabel',
+                        f'{skos}#example',
+                        f'{skos}#related',
+                        f'{skos}#topConceptOf',
+                        f'{skos}#inScheme',
+                        f'{skos}#prefLabel',
+                        f'{skos}#member',
+                        f'{skos}#exactMatch',
+                        f'{skos}#closeMatch',
+                        f'{skos}#broadMatch',
+                        f'{skos}#relatedMatch',
+                        f'{skos}#broader',
+                        f'{skos}#narrower']:
                     continue
                 missing += f'{label} ({id_}) {key}: {value}<br>'
     out = ''
     for item in types.values():
         out += f'vocabs id: {item["vocabs_id"]}<br>'
         out += f'label: {item["label"]}<br>'
-        out += f'subs: {item["subs"]}<br>'
+        out += f'subs: {item["subs"]}<br>' if item['subs'] else ''
+        for system_name, links in item['references'].items():
+            for link_ in links:
+                out += f"{system_name} id: {link_['id']}, {link_['match']}<br>"
         out += '---<br>'
     return f'{out} {missing}'
