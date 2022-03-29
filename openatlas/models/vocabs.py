@@ -5,6 +5,10 @@ from openatlas import app
 
 
 def vocabs_import() -> str:
+    wikidata_id = 103
+    getty_id = 105
+    vocabs_id = 106
+
     types = {}
     missing = ''
     vocabs = 'https://vocabs.acdh.oeaw.ac.at/indigo/'
