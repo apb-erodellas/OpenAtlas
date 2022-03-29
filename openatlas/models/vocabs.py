@@ -17,7 +17,7 @@ def vocabs_import() -> str:
                     or not data['@id'] != f'{vocabs}Thesaurus' \
                     or not data['@id'].startswith(vocabs):
                 continue
-            id_ = data['@id'].replace(vocabs, '')
+            id_ = int(data['@id'].replace(vocabs, ''))
             label = 'N/A'
             if f'{skos}#prefLabel' in data:
                 for item in data[f'{skos}#prefLabel']:
@@ -28,11 +28,15 @@ def vocabs_import() -> str:
                 'vocabs_id': id_,
                 'label': label,
                 'subs': [],
+                'parent_id': None,
                 'references': {'wikidata': [], 'getty': []}}
 
             if f'{skos}#member' in data:
                 for sub in data[f'{skos}#member']:
-                    types[id_]['subs'].append(sub['@id'].replace(vocabs, ''))
+                    types[id_]['subs'].append(
+                       int(sub['@id'].replace(vocabs, '')))
+
+            # External references
             for match in ['exact', 'close']:
                 if f'{skos}#{match}Match' in data:
                     items = data[f'{skos}#{match}Match']
@@ -68,10 +72,18 @@ def vocabs_import() -> str:
                         f'{skos}#narrower']:
                     continue
                 missing += f'{label} ({id_}) {key}: {value}<br>'
+    # Parent id
+    for key, item in types.items():
+        for sub_id in item['subs']:
+            if types[sub_id]['parent_id']:
+                missing += f'Too many parents for {types[sub_id]}<br>'
+            else:
+                types[sub_id]['parent_id'] = key
     out = ''
     for item in types.values():
         out += f'vocabs id: {item["vocabs_id"]}<br>'
         out += f'label: {item["label"]}<br>'
+        out += f'parent: {item["parent_id"]}<br>' if item['parent_id'] else ''
         out += f'subs: {item["subs"]}<br>' if item['subs'] else ''
         for system_name, links in item['references'].items():
             for link_ in links:
