@@ -2,13 +2,18 @@ import json
 from pathlib import Path
 
 from openatlas import app
+from openatlas.database.connect import Transaction
+from openatlas.models.entity import Entity
 
 
 def vocabs_import() -> str:
-    wikidata_id = 103
-    getty_id = 105
-    vocabs_id = 106
-
+    entities = {
+        'graffiti_type': Entity.get_by_id(107),
+        'wikidata': Entity.get_by_id(103),
+        'getty': Entity.get_by_id(105),
+        'vocabs': Entity.get_by_id(106),
+        'exact': Entity.get_by_id(12),
+        'close': Entity.get_by_id(13)}
     types = {}
     missing = ''
     vocabs = 'https://vocabs.acdh.oeaw.ac.at/indigo/'
@@ -32,7 +37,8 @@ def vocabs_import() -> str:
                 'vocabs_id': id_,
                 'label': label,
                 'subs': [],
-                'parent_id': None,
+                'super_id': None,
+                'openatlas_id': None,
                 'references': {'wikidata': [], 'getty': []}}
 
             if f'{skos}#member' in data:
@@ -76,18 +82,53 @@ def vocabs_import() -> str:
                         f'{skos}#narrower']:
                     continue
                 missing += f'{label} ({id_}) {key}: {value}<br>'
-    # Parent id
-    for key, item in types.items():
+    # Set super id
+    for vocabs_id, item in types.items():
         for sub_id in item['subs']:
-            if types[sub_id]['parent_id']:
+            if types[sub_id]['super_id']:
                 missing += f'Too many parents for {types[sub_id]}<br>'
             else:
-                types[sub_id]['parent_id'] = key
+                types[sub_id]['super_id'] = vocabs_id
+
+    Transaction.begin()
+
+    # Insert types and their external references
+    for vocabs_id, item in types.items():
+        entity = Entity.insert(
+            'type',
+            item['label'],
+            'Imported from Vocabs on 2022-03-30')
+        item['openatlas_id'] = entity.id
+        entities['vocabs'].link(
+            'P67',
+            entity,
+            str(vocabs_id),
+            type_id=entities['exact'].id)
+        for system_name, links in item['references'].items():
+            for link_ in links:
+                entities[system_name].link(
+                    'P67',
+                    entity,
+                    link_['id'],
+                    type_id=entities[link_['match']].id)
+
+    # Link types to super
+    for item in types.values():
+        entity = Entity.get_by_id(item['openatlas_id'])
+        if item['super_id']:
+            entity.link(
+                'P127',
+                Entity.get_by_id(types[item['super_id']]['openatlas_id']))
+        else:
+            entity.link('P127', entities['graffiti_type'])
+
+    Transaction.commit()
+
     out = ''
     for item in types.values():
         out += f'vocabs id: {item["vocabs_id"]}<br>'
         out += f'label: {item["label"]}<br>'
-        out += f'parent: {item["parent_id"]}<br>' if item['parent_id'] else ''
+        out += f'parent: {item["super_id"]}<br>' if item['super_id'] else ''
         out += f'subs: {item["subs"]}<br>' if item['subs'] else ''
         for system_name, links in item['references'].items():
             for link_ in links:
