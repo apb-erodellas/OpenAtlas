@@ -585,7 +585,7 @@ msgstr "unidad estratigráfica"
 #: openatlas/forms/manager.py:241 openatlas/views/admin.py:123
 #: openatlas/views/entity_index.py:39 openatlas/views/imports.py:156
 msgid "file"
-msgstr "archivo"
+msgstr "fichero"
 
 #: openatlas/forms/manager.py:259
 msgid "begins in"
@@ -1398,7 +1398,7 @@ msgstr "quiere una nueva característica o tiene algún problema"
 
 #: openatlas/templates/index/index.html:19
 msgid "tell us about it"
-msgstr "cuéntanoslo"
+msgstr "cuéntanos"
 
 #: openatlas/templates/index/index.html:23
 msgid "want to receive updates? Activate the newsletter in your"
@@ -1422,7 +1422,7 @@ msgstr "Este es su primer inicio de sesión. ¡Bienvenido!"
 
 #: openatlas/templates/index/index.html:40
 msgid "latest"
-msgstr "el último"
+msgstr "más reciente"
 
 #: openatlas/templates/index/index.html:43
 msgid "Show all activity"

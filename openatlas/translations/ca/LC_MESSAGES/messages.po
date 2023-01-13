@@ -221,7 +221,7 @@ msgstr "descarrega"
 
 #: openatlas/display/display.py:66
 msgid "missing file"
-msgstr "arxiu perdut"
+msgstr "fitxer perdut"
 
 #: openatlas/display/display.py:147
 msgid "person"
@@ -292,11 +292,11 @@ msgstr "desvinculat"
 
 #: openatlas/display/tab.py:18
 msgid "missing files"
-msgstr "arxius que falten"
+msgstr "fitxers que falten"
 
 #: openatlas/display/tab.py:19
 msgid "orphaned files"
-msgstr "arxius orfes"
+msgstr "ftixers orfes"
 
 #: openatlas/display/tab.py:20
 msgid "orphaned subunits"
@@ -584,7 +584,7 @@ msgstr "unitat estratigràfica"
 #: openatlas/forms/manager.py:241 openatlas/views/admin.py:123
 #: openatlas/views/entity_index.py:39 openatlas/views/imports.py:156
 msgid "file"
-msgstr "arxiu"
+msgstr "fitxer"
 
 #: openatlas/forms/manager.py:259
 msgid "begins in"
@@ -1419,7 +1419,7 @@ msgstr "Aquest és el primer inici de sessió. Benvingut"
 
 #: openatlas/templates/index/index.html:40
 msgid "latest"
-msgstr "el darrer"
+msgstr "més recent"
 
 #: openatlas/templates/index/index.html:43
 msgid "Show all activity"
