@@ -294,7 +294,7 @@ msgstr "fitxers que falten"
 
 #: openatlas/display/tab.py:19
 msgid "orphaned files"
-msgstr "ftixers orfes"
+msgstr "fitxers orfes"
 
 #: openatlas/display/tab.py:20
 msgid "orphaned subunits"
